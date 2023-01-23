@@ -108,6 +108,35 @@ class WithNBigCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config
   }
 })
 
+class WithNHetBigCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => { //smaller big core for hetero on small FPGA, RV64GC
+  case RocketTilesKey => {
+    val prev = up(RocketTilesKey, site)
+    val idOffset = overrideIdOffset.getOrElse(prev.size)
+    val big = RocketTileParams(
+      core   = RocketCoreParams(mulDiv = Some(MulDivParams(
+        mulUnroll = 8,
+        mulEarlyOut = true,
+        divEarlyOut = true))),
+      btb = None, //no branch prediction
+      dcache = Some(DCacheParams( //reduced D-cache
+        rowBits = site(SystemBusKey).beatBits,
+        nSets = 64,
+        nWays = 2,
+        nTLBSets = 1,
+        nTLBWays = 16,
+        nMSHRs = 0,
+        blockBytes = site(CacheBlockBytes))),
+      icache = Some(ICacheParams( //reduced I-cache
+        rowBits = site(SystemBusKey).beatBits,
+        nSets = 64,
+        nWays = 2,
+        nTLBSets = 1,
+        nTLBWays = 16,
+        blockBytes = site(CacheBlockBytes))))
+    List.tabulate(n)(i => big.copy(hartId = i + idOffset)) ++ prev
+  }
+})
+
 class WithNMedCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => {
   case RocketTilesKey => {
     val prev = up(RocketTilesKey, site)
@@ -157,6 +186,33 @@ class WithNSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends Conf
         nTLBWays = 4,
         blockBytes = site(CacheBlockBytes))))
     List.tabulate(n)(i => small.copy(hartId = i + idOffset)) ++ prev
+  }
+})
+
+class WithNHetSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => { //Smaller small core for hetero on small FPGA, RV64GC
+  case RocketTilesKey => {
+    val prev = up(RocketTilesKey, site)
+    val idOffset = overrideIdOffset.getOrElse(prev.size)
+    val big = RocketTileParams(
+      core   = RocketCoreParams(mulDiv = Some(MulDivParams(
+        mulUnroll = 8))),
+      btb = None, //no branch prediction
+      dcache = Some(DCacheParams( //reduced D-cache
+        rowBits = site(SystemBusKey).beatBits,
+        nSets = 32,
+        nWays = 1,
+        nTLBSets = 1,
+        nTLBWays = 4,
+        nMSHRs = 0,
+        blockBytes = site(CacheBlockBytes))),
+      icache = Some(ICacheParams( //reduced I-cache
+        rowBits = site(SystemBusKey).beatBits,
+        nSets = 32,
+        nWays = 1,
+        nTLBSets = 1,
+        nTLBWays = 4,
+        blockBytes = site(CacheBlockBytes))))
+    List.tabulate(n)(i => big.copy(hartId = i + idOffset)) ++ prev
   }
 })
 
