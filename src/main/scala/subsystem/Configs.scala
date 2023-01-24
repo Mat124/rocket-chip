@@ -113,7 +113,7 @@ class WithNHetBigCores(n: Int, overrideIdOffset: Option[Int] = None) extends Con
     val prev = up(RocketTilesKey, site)
     val idOffset = overrideIdOffset.getOrElse(prev.size)
     val big = RocketTileParams(
-      core   = RocketCoreParams(mulDiv = Some(MulDivParams(
+      core   = RocketCoreParams(useVM = false, mulDiv = Some(MulDivParams(
         mulUnroll = 8,
         mulEarlyOut = true,
         divEarlyOut = true))),
@@ -193,9 +193,9 @@ class WithNHetSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends C
   case RocketTilesKey => {
     val prev = up(RocketTilesKey, site)
     val idOffset = overrideIdOffset.getOrElse(prev.size)
-    val big = RocketTileParams(
-      core   = RocketCoreParams(mulDiv = Some(MulDivParams(
-        mulUnroll = 8))),
+    val small = RocketTileParams(
+      core   = RocketCoreParams(useVM = false, mulDiv = Some(MulDivParams(
+        mulUnroll = 4))), //small mul
       btb = None, //no branch prediction
       dcache = Some(DCacheParams( //reduced D-cache
         rowBits = site(SystemBusKey).beatBits,
@@ -212,7 +212,7 @@ class WithNHetSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends C
         nTLBSets = 1,
         nTLBWays = 4,
         blockBytes = site(CacheBlockBytes))))
-    List.tabulate(n)(i => big.copy(hartId = i + idOffset)) ++ prev
+    List.tabulate(n)(i => small.copy(hartId = i + idOffset)) ++ prev
   }
 })
 
