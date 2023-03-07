@@ -113,12 +113,17 @@ class WithNHetBigCores(n: Int, overrideIdOffset: Option[Int] = None) extends Con
     val prev = up(RocketTilesKey, site)
     val idOffset = overrideIdOffset.getOrElse(prev.size)
     val big = RocketTileParams(
-      core = RocketCoreParams(fpu = None,
-        mulDiv = Some(MulDivParams(
-          mulUnroll = 16,
-          mulEarlyOut = true,
-          divEarlyOut = true)),
-        fastLoadByte = true),
+      core = RocketCoreParams(fastLoadByte = true, fpu = None, mulDiv = Some(MulDivParams(
+        mulUnroll = 16,
+        mulEarlyOut = true,
+        divEarlyOut = true))),
+      btb = BTBParams(
+        nEntries = 28,
+        nMatchBits = 14,
+        nPages = 6,
+        nRAS = 6,
+        bhtParams = Some(BHTParams()),
+        updatesOutOfOrder = false),
       dcache = Some(DCacheParams( //reduced D-cache
         rowBits = site(SystemBusKey).beatBits,
         nSets = 64,
@@ -194,7 +199,9 @@ class WithNHetSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends C
     val prev = up(RocketTilesKey, site)
     val idOffset = overrideIdOffset.getOrElse(prev.size)
     val small = RocketTileParams(
-      core = RocketCoreParams(fpu = None),
+      core   = RocketCoreParams(fpu = None, mulDiv = Some(MulDivParams(
+        mulUnroll = 1))), //small mul
+      btb = None, //no branch prediction
       dcache = Some(DCacheParams( //reduced D-cache
         rowBits = site(SystemBusKey).beatBits,
         nSets = 64,
