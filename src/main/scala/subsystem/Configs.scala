@@ -88,12 +88,12 @@ class WithCoherentBusTopology extends Config((site, here, up) => {
       driveMBusClockFromSBus = site(DriveClocksFromSBus)))
 })
 
-class WithNBigCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => {
+class WithNBigCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => { //orig version
   case RocketTilesKey => {
     val prev = up(RocketTilesKey, site)
     val idOffset = overrideIdOffset.getOrElse(prev.size)
     val big = RocketTileParams(
-      core   = RocketCoreParams(mulDiv = Some(MulDivParams(
+      core = RocketCoreParams(mulDiv = Some(MulDivParams(
         mulUnroll = 8,
         mulEarlyOut = true,
         divEarlyOut = true))),
@@ -108,12 +108,13 @@ class WithNBigCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config
   }
 })
 
+
 class WithNHetBigCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => { //smaller big core for hetero on small FPGA, RV64GC
   case RocketTilesKey => {
     val prev = up(RocketTilesKey, site)
     val idOffset = overrideIdOffset.getOrElse(prev.size)
     val big = RocketTileParams(
-      core   = RocketCoreParams(useVM = false, fpu = None, mulDiv = Some(MulDivParams(
+      core = RocketCoreParams(fastLoadByte = true, useVM = false, fpu = None, mulDiv = Some(MulDivParams(
         mulUnroll = 8,
         mulEarlyOut = true,
         divEarlyOut = true))),
@@ -169,7 +170,7 @@ class WithNMedCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config
   }
 })
 
-class WithNSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => {
+class WithNSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => { //orig version
   case RocketTilesKey => {
     val prev = up(RocketTilesKey, site)
     val idOffset = overrideIdOffset.getOrElse(prev.size)
@@ -195,7 +196,8 @@ class WithNSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends Conf
   }
 })
 
-class WithNHetSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => { //Smaller small core for hetero on small FPGA, RV64GC
+
+class WithNHetSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => { //Smaller small core for hetero on small FPGA
   case RocketTilesKey => {
     val prev = up(RocketTilesKey, site)
     val idOffset = overrideIdOffset.getOrElse(prev.size)
@@ -205,15 +207,15 @@ class WithNHetSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends C
       btb = None, //no branch prediction
       dcache = Some(DCacheParams( //reduced D-cache
         rowBits = site(SystemBusKey).beatBits,
-        nSets = 32,
+        nSets = 64,
         nWays = 1,
         nTLBSets = 1,
         nTLBWays = 4,
         nMSHRs = 0,
         blockBytes = site(CacheBlockBytes))),
-      icache = Some(ICacheParams( //reduced I-cache
+      icache = Some(ICacheParams(
         rowBits = site(SystemBusKey).beatBits,
-        nSets = 32,
+        nSets = 64,
         nWays = 1,
         nTLBSets = 1,
         nTLBWays = 4,
