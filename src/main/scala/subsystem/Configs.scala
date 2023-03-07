@@ -108,36 +108,36 @@ class WithNBigCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config
   }
 })
 
-/*
-class WithNBigCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => { //smaller big core for hetero on small FPGA, RV64GC
+class WithNHetBigCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => { //smaller big core for hetero on small FPGA, RV64GC
   case RocketTilesKey => {
     val prev = up(RocketTilesKey, site)
     val idOffset = overrideIdOffset.getOrElse(prev.size)
     val big = RocketTileParams(
-      core = RocketCoreParams(useVM = false, fpu = None, mulDiv = Some(MulDivParams(
-        mulUnroll = 8,
-        mulEarlyOut = true,
-        divEarlyOut = true))),
-      btb = None, //no branch prediction
+      core = RocketCoreParams(fpu = None,
+        mulDiv = Some(MulDivParams(
+          mulUnroll = 16,
+          mulEarlyOut = true,
+          divEarlyOut = true)),
+        fastLoadByte = true),
       dcache = Some(DCacheParams( //reduced D-cache
         rowBits = site(SystemBusKey).beatBits,
         nSets = 64,
-        nWays = 2,
-        nTLBSets = 1,
-        nTLBWays = 16,
-        nMSHRs = 0,
+        nWays = 4,
+        nTLBSets = 2,
+        nTLBWays = 32,
+        nMSHRs = 1,
         blockBytes = site(CacheBlockBytes))),
       icache = Some(ICacheParams( //reduced I-cache
         rowBits = site(SystemBusKey).beatBits,
         nSets = 64,
-        nWays = 2,
-        nTLBSets = 1,
-        nTLBWays = 16,
+        nWays = 4,
+        nTLBSets = 2,
+        nTLBWays = 32,
         blockBytes = site(CacheBlockBytes))))
     List.tabulate(n)(i => big.copy(hartId = i + idOffset)) ++ prev
   }
 })
-*/
+
 class WithNMedCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => {
   case RocketTilesKey => {
     val prev = up(RocketTilesKey, site)
@@ -163,14 +163,13 @@ class WithNMedCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config
     List.tabulate(n)(i => med.copy(hartId = i + idOffset)) ++ prev
   }
 })
-/*
+
 class WithNSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => { //orig version
   case RocketTilesKey => {
     val prev = up(RocketTilesKey, site)
     val idOffset = overrideIdOffset.getOrElse(prev.size)
     val small = RocketTileParams(
       core = RocketCoreParams(useVM = false, fpu = None),
-      btb = None,
       dcache = Some(DCacheParams(
         rowBits = site(SystemBusKey).beatBits,
         nSets = 64,
@@ -189,16 +188,14 @@ class WithNSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends Conf
     List.tabulate(n)(i => small.copy(hartId = i + idOffset)) ++ prev
   }
 })
-*/
 
-class WithNSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => { //Smaller small core for hetero on small FPGA
+class WithNHetSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends Config((site, here, up) => { //Smaller small core for hetero on small FPGA
   case RocketTilesKey => {
     val prev = up(RocketTilesKey, site)
     val idOffset = overrideIdOffset.getOrElse(prev.size)
     val small = RocketTileParams(
-      core = RocketCoreParams(useVM = false, fpu = None),
-      btb = None,
-      dcache = Some(DCacheParams(
+      core = RocketCoreParams(fpu = None),
+      dcache = Some(DCacheParams( //reduced D-cache
         rowBits = site(SystemBusKey).beatBits,
         nSets = 64,
         nWays = 1,
@@ -206,7 +203,7 @@ class WithNSmallCores(n: Int, overrideIdOffset: Option[Int] = None) extends Conf
         nTLBWays = 4,
         nMSHRs = 0,
         blockBytes = site(CacheBlockBytes))),
-      icache = Some(ICacheParams(
+      icache = Some(ICacheParams( //reduced I-cache
         rowBits = site(SystemBusKey).beatBits,
         nSets = 64,
         nWays = 1,
