@@ -107,7 +107,7 @@ trait HasCoreParameters extends HasTileParameters {
   def vMemDataBits = if (usingVector) coreParams.vMemDataBits else 0
   def maxVLMax = vLen
 
-  if (usingVector) {
+  if (usingVector) {CoreParams
     require(isPow2(vLen), s"vLen ($vLen) must be a power of 2")
     require(eLen >= 32 && vLen % eLen == 0, s"eLen must divide vLen ($vLen) and be no less than 32")
     require(vMemDataBits >= eLen && vLen % vMemDataBits == 0, s"vMemDataBits ($vMemDataBits) must divide vLen ($vLen) and be no less than eLen ($eLen)")
